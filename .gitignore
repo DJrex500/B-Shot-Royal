@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.cursor/
+connect-github.bat
+sync-github-mcp.ps1
+*.log
