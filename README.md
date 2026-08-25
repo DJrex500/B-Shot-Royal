@@ -6,16 +6,23 @@
 
 *Loot. Build. Survive the storm. Eliminate them all for the B-Shot Victory.*
 
+[![Play in Browser](https://img.shields.io/badge/Play_Now-djrex500.github.io-success?style=for-the-badge)](https://djrex500.github.io/bshot-royale/)
 ![Three.js](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
+
+**[▶ Play now](https://djrex500.github.io/bshot-royale/)** — no install, runs in the browser.
 
 </div>
 
 ---
 
 ## 🚀 Quick Start
+
+**Play online:** [https://djrex500.github.io/bshot-royale/](https://djrex500.github.io/bshot-royale/)
+
+Or run it locally:
 
 **Option 1 — double-click `start.bat`** *(easiest on Windows)*
 
