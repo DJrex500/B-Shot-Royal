@@ -20,9 +20,11 @@
 
 ## 🚀 Quick Start
 
-**Play online:** [https://djrex500.github.io/bshot-royale/](https://djrex500.github.io/bshot-royale/)
+**Play now:** [https://djrex500.github.io/bshot-royale/](https://djrex500.github.io/bshot-royale/)
 
-Or run it locally:
+Open the link, hit **Drop In**, and click the game screen once to capture your mouse.
+
+### Run locally
 
 **Option 1 — double-click `start.bat`** *(easiest on Windows)*
 
@@ -33,7 +35,7 @@ npm install
 npm run dev
 ```
 
-Then open **http://localhost:5173**, hit **Drop In**, and click the game screen once to capture your mouse.
+The local server is at `http://localhost:5173`.
 
 ---
 
