@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite';
 
-export default defineConfig({
-  // GitHub Pages serves this build at https://djrex500.github.io/bshot-royale/
-  base: process.env.NODE_ENV === 'production' ? '/bshot-royale/' : '/',
+export default defineConfig(({ command }) => ({
+  // Live site is the user Pages repo: https://djrex500.github.io/bshot-royale/
+  base: command === 'build' ? '/bshot-royale/' : '/',
   server: {
     port: 8080,
     strictPort: true,
@@ -16,4 +16,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
