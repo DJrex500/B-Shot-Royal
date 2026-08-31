@@ -15,7 +15,13 @@ export const PLAYER = {
   maxShield: 100,
   baseFov: 75,
   damageCooldown: 0.4,
+  jumpLock: 0.28,
 };
+
+export const MAT_TYPES = ['wood', 'brick', 'metal'];
+export const MAT_LABELS = { wood: 'Wood', brick: 'Brick', metal: 'Metal' };
+export const MAT_HP = { wood: 1, brick: 2, metal: 3 };
+export const MAT_MAX = 999;
 
 export const BOT = {
   speedMin: 7,

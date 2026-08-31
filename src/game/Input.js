@@ -9,6 +9,10 @@ export class Input {
     this.wheelDelta = 0;
 
     this._onKeyDown = (e) => {
+      if (e.repeat) {
+        if (['Space', 'Tab'].includes(e.code)) e.preventDefault();
+        return;
+      }
       this.keys.add(e.code);
       this.justPressed.add(e.code);
       if (['Space', 'Tab'].includes(e.code)) e.preventDefault();

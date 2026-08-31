@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>B-Shot Royal</title>
+    <link rel="icon" type="image/png" href="bshot-royale-logo.png" />
+    <link rel="apple-touch-icon" href="bshot-royale-logo.png" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
@@ -11,8 +13,9 @@
       <div id="menu">
         <div class="menu-shell">
           <div class="menu-hero">
+            <img class="menu-logo" src="bshot-royale-logo.png" alt="B-Shot Royale" />
             <p class="menu-kicker">Season 1</p>
-            <h1>Build Battle</h1>
+            <h1>B-Shot Royal</h1>
             <p class="tagline">Loot · Build · Survive the Storm</p>
             <ul class="menu-features">
               <li>400m open world with POIs</li>
@@ -24,11 +27,23 @@
             <div class="menu-tabs">
               <button type="button" class="menu-tab active" data-tab="play">Play</button>
               <button type="button" class="menu-tab" data-tab="settings">Settings</button>
+              <button type="button" class="menu-tab" data-tab="updates">Updates</button>
             </div>
             <div id="tab-play" class="menu-tab-content">
               <p class="panel-desc">Drop onto the island. Harvest mats, grab loot, outlast the storm.</p>
               <button id="play-btn" type="button">Drop In</button>
               <p class="tagline hint">After dropping in, click the game screen to capture the mouse.</p>
+              <div class="loot-legend">
+                <span class="leg mats">Wood / Brick / Metal</span>
+                <span class="leg ammo">Ammo box = Rifle</span>
+                <span class="leg ammo">Red shells = Shotgun</span>
+                <span class="leg ammo">Long rounds = Sniper</span>
+                <span class="leg shield">Bottle = Shield</span>
+                <span class="leg medkit">Red cross = Medkit</span>
+                <span class="leg gun">Guns = Weapons</span>
+                <span class="leg chest">Gold box = Chest</span>
+              </div>
+              <p class="tagline hint"><a href="/skin-lab.html">Open Skin Lab</a> to design character colors.</p>
               <div class="controls compact">
                 <h2>Controls</h2>
                 <div class="grid">
@@ -41,6 +56,7 @@
                   <span><kbd>F</kbd> Harvest</span>
                   <span><kbd>E</kbd> Open chest</span>
                   <span><kbd>1 2 3</kbd> Switch</span>
+                  <span><kbd>Q</kbd> Wood / Brick / Metal</span>
                   <span><kbd>R</kbd> Reload</span>
                 </div>
               </div>
@@ -73,6 +89,10 @@
                 </div>
               </div>
             </div>
+            <div id="tab-updates" class="menu-tab-content hidden">
+              <p class="panel-desc">Patch notes. Newest drops first.</p>
+              <div id="update-log" class="update-log"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -91,27 +111,32 @@
         </div>
         <div id="storm-info">Storm in 90s</div>
         <div id="interact-hint" class="hidden">[F] Harvest</div>
-        <div id="top-bar">
-          <div id="health-bar"><div id="health-fill"></div><span id="health-text">100</span></div>
-          <div id="shield-bar"><div id="shield-fill"></div><span id="shield-text">100</span></div>
-          <div id="materials">Materials: <span id="mat-count">0</span></div>
-        </div>
-        <div id="bottom-bar">
-          <div id="weapon-name">Assault Rifle</div>
-          <div id="weapon-slots">
-            <span class="slot" data-slot="0">1 AR</span>
-            <span class="slot" data-slot="1">2 SG</span>
-            <span class="slot" data-slot="2">3 SN</span>
+        <div id="fn-hud">
+          <div id="vitals">
+            <div id="shield-bar"><div id="shield-fill"></div><span id="shield-text">100</span></div>
+            <div id="health-bar"><div id="health-fill"></div><span id="health-text">100</span></div>
           </div>
-          <div id="ammo"><span id="ammo-current">30</span> / <span id="ammo-reserve">120</span></div>
-          <div id="reload-bar" class="hidden"><div id="reload-fill"></div></div>
-          <div id="build-info" class="hidden">
-            Build: <span id="build-piece">Wall</span>
-            <span id="build-slots">
-              <span class="slot build-slot" data-slot="wall">1 Wall</span>
-              <span class="slot build-slot" data-slot="floor">2 Floor</span>
-              <span class="slot build-slot" data-slot="ramp">3 Ramp</span>
-            </span>
+          <div id="hotbar-wrap">
+            <div id="mat-stack">
+              <button type="button" class="mat-slot active" data-mat="wood"><i class="mat-icon wood"></i><b id="wood-count">0</b><span>Wood</span></button>
+              <button type="button" class="mat-slot" data-mat="brick"><i class="mat-icon brick"></i><b id="brick-count">0</b><span>Brick</span></button>
+              <button type="button" class="mat-slot" data-mat="metal"><i class="mat-icon metal"></i><b id="metal-count">0</b><span>Metal</span></button>
+            </div>
+            <div id="weapon-hotbar" class="hotbar-row">
+              <div class="fn-slot" data-slot="0"><em>1</em><span class="slot-art rifle"></span><strong>Rifle</strong></div>
+              <div class="fn-slot" data-slot="1"><em>2</em><span class="slot-art shotgun"></span><strong>Shotgun</strong></div>
+              <div class="fn-slot" data-slot="2"><em>3</em><span class="slot-art sniper"></span><strong>Sniper</strong></div>
+            </div>
+            <div id="build-hotbar" class="hotbar-row hidden">
+              <div class="fn-slot build-slot" data-slot="wall"><em>1</em><span class="slot-art wall"></span><strong>Wall</strong></div>
+              <div class="fn-slot build-slot" data-slot="floor"><em>2</em><span class="slot-art floor"></span><strong>Floor</strong></div>
+              <div class="fn-slot build-slot" data-slot="ramp"><em>3</em><span class="slot-art ramp"></span><strong>Ramp</strong></div>
+            </div>
+            <div id="ammo-readout">
+              <span id="weapon-name">Assault Rifle</span>
+              <span id="ammo"><span id="ammo-current">30</span> / <span id="ammo-reserve">120</span></span>
+              <div id="reload-bar" class="hidden"><div id="reload-fill"></div></div>
+            </div>
           </div>
           <div id="mode-badge">COMBAT</div>
         </div>
@@ -119,11 +144,13 @@
         <div id="loot-feed"></div>
       </div>
       <div id="death-screen" class="hidden">
+        <img class="end-logo" src="bshot-royale-logo.png" alt="B-Shot Royale" />
         <h2>Eliminated</h2>
         <p id="death-stats"></p>
         <button id="respawn-btn" type="button">Respawn</button>
       </div>
       <div id="victory-screen" class="hidden">
+        <img class="end-logo" src="bshot-royale-logo.png" alt="B-Shot Royale" />
         <h2>Victory Royale!</h2>
         <p id="victory-stats"></p>
         <button id="victory-btn" type="button">Play Again</button>

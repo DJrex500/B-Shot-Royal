@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { PLAYER } from './constants.js';
 import { createFPSArms } from './CharacterModel.js';
+import { PLAYER_SKIN_INDEX } from './skins.js';
 
 export class Player {
   constructor(scene, world, spawnPos) {
@@ -13,7 +14,10 @@ export class Player {
     this.shield = PLAYER.maxShield;
     this.maxHealth = PLAYER.maxHealth;
     this.maxShield = PLAYER.maxShield;
-    this.materials = 100;
+    this.mats = { wood: 80, brick: 30, metal: 10 };
+    this.buildMat = 'wood';
+    this.jumpLock = 0;
+    this.spaceHeld = false;
 
     this.yaw = 0;
     this.pitch = 0;
@@ -40,7 +44,7 @@ export class Player {
     this.camera.add(this.weaponGroup);
     this.weaponGroup.position.set(0.35, -0.25, -0.5);
 
-    this.armsGroup = createFPSArms(0);
+    this.armsGroup = createFPSArms(PLAYER_SKIN_INDEX);
     this.armsGroup.position.set(0.28, -0.48, -0.55);
     this.armsGroup.scale.setScalar(0.65);
     this.camera.add(this.armsGroup);
@@ -58,6 +62,10 @@ export class Player {
     this.onDamage = null;
     this.wasMoving = false;
     this.lastDamageTime = 0;
+  }
+
+  get materials() {
+    return (this.mats.wood || 0) + (this.mats.brick || 0) + (this.mats.metal || 0);
   }
 
   get position() {
@@ -109,10 +117,29 @@ export class Player {
       this.wasMoving = false;
     }
 
-    if ((input.isDown('Space') || input.wasPressed('Space')) && this.onGround) {
+    if (this.jumpLock > 0) this.jumpLock = Math.max(0, this.jumpLock - dt);
+
+    const spaceDown = input.isDown('Space');
+    const spacePressed = spaceDown && !this.spaceHeld;
+    this.spaceHeld = spaceDown;
+
+    if (spacePressed && this.onGround && this.jumpLock <= 0) {
       this.body.velocity.y = PLAYER.jumpForce;
       this.onGround = false;
+      this.jumpLock = PLAYER.jumpLock;
     }
+  }
+
+  addMats(type, amount) {
+    if (!this.mats[type]) this.mats[type] = 0;
+    this.mats[type] = Math.min(999, this.mats[type] + amount);
+  }
+
+  cycleBuildMat() {
+    const order = ['wood', 'brick', 'metal'];
+    const idx = order.indexOf(this.buildMat);
+    this.buildMat = order[(idx + 1) % order.length];
+    return this.buildMat;
   }
 
   syncCamera(dt = 0) {
@@ -154,7 +181,10 @@ export class Player {
     this.alive = true;
     this.health = PLAYER.maxHealth;
     this.shield = PLAYER.maxShield;
-    this.materials = 50;
+    this.mats = { wood: 50, brick: 20, metal: 10 };
+    this.buildMat = 'wood';
+    this.jumpLock = 0;
+    this.spaceHeld = false;
     this.body.position.set(pos.x, pos.y + PLAYER.radius + 0.05, pos.z);
     this.body.velocity.set(0, 0, 0);
   }

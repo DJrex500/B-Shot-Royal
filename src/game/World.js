@@ -3,7 +3,7 @@ import * as CANNON from 'cannon-es';
 import { MAP_SIZE, COLORS } from './constants.js';
 import {
   createGrassTexture, createBrickTexture, createStoneTexture,
-  createWaterTexture, mat,
+  createWaterTexture, createMetalTexture, mat,
 } from './textures.js';
 
 export class World {
@@ -22,6 +22,7 @@ export class World {
     this.textures.brick = createBrickTexture();
     this.textures.brick.repeat.set(2, 2);
     this.textures.stone = createStoneTexture();
+    this.textures.metal = createMetalTexture();
     this.textures.water = createWaterTexture();
     this.textures.water.repeat.set(4, 4);
 
@@ -32,6 +33,7 @@ export class World {
       trunk: new THREE.MeshStandardMaterial({ color: 0x4a3728, roughness: 0.95 }),
       leaves: new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.9 }),
       rock: mat(this.textures.stone, { roughness: 0.92 }),
+      scrap: mat(this.textures.metal, { roughness: 0.35, metalness: 0.75 }),
       water: mat(this.textures.water, { roughness: 0.15, metalness: 0.35 }),
     };
   }
@@ -169,17 +171,21 @@ export class World {
   }
 
   addRocks() {
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 45; i++) {
       const x = (Math.random() - 0.5) * (MAP_SIZE - 60);
       const z = (Math.random() - 0.5) * (MAP_SIZE - 60);
+      const metal = i >= 28;
       const s = 1.2 + Math.random() * 2;
-      const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(s, 0), this.mats.rock);
+      const rock = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(s, 0),
+        metal ? this.mats.scrap : this.mats.rock
+      );
       rock.position.set(x, s * 0.6, z);
       rock.rotation.set(Math.random(), Math.random(), Math.random());
       rock.castShadow = true;
       rock.userData.harvestable = true;
-      rock.userData.harvestType = 'stone';
-      rock.userData.health = 120;
+      rock.userData.harvestType = metal ? 'metal' : 'stone';
+      rock.userData.health = metal ? 150 : 120;
       this.scene.add(rock);
       this.obstacles.push(rock);
       this.harvestables.push(rock);

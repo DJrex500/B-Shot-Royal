@@ -61,16 +61,20 @@ export class HarvestSystem {
 
     obj.userData.health -= LOOT.harvestDamage;
     const type = obj.userData.harvestType;
-    const mats = type === 'wood' ? 15 + Math.floor(Math.random() * 10) : 12 + Math.floor(Math.random() * 8);
+    const matKey = type === 'wood' ? 'wood' : type === 'metal' ? 'metal' : 'brick';
+    const mats = matKey === 'wood' ? 15 + Math.floor(Math.random() * 10)
+      : matKey === 'metal' ? 8 + Math.floor(Math.random() * 7)
+      : 12 + Math.floor(Math.random() * 8);
 
-    player.materials += mats;
+    player.addMats(matKey, mats);
     this.swingCooldown = 0.45;
     player.recoilKick(0.06);
 
     if (obj.material) {
+      const restore = type === 'wood' ? 0x4a3728 : type === 'metal' ? 0x64748b : 0x78716c;
       obj.material.color.setHex(0xffffff);
       setTimeout(() => {
-        if (obj.material) obj.material.color.setHex(type === 'wood' ? 0x4a3728 : 0x78716c);
+        if (obj.material) obj.material.color.setHex(restore);
       }, 80);
     }
 
@@ -78,7 +82,8 @@ export class HarvestSystem {
       this.destroyHarvestable(obj, harvestables);
     }
 
-    if (onHarvest) onHarvest(`+${mats} ${type}`);
+    const label = matKey === 'wood' ? 'Wood' : matKey === 'metal' ? 'Metal' : 'Brick';
+    if (onHarvest) onHarvest(`+${mats} ${label}`, matKey);
     return true;
   }
 

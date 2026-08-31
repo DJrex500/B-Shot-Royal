@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🏆 B-Shot Royal
+<img src="public/bshot-royale-logo.png" alt="B-Shot Royale" width="280" />
+
+# B-Shot Royal
 
 **A Fortnite-style battle royale you can play in your browser.**
 

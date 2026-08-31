@@ -97,6 +97,41 @@ export function createBrickTexture() {
   });
 }
 
+export function createMetalTexture() {
+  return canvasTex((ctx, s) => {
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(0, 0, s, s);
+    for (let y = 0; y < s; y += 6) {
+      ctx.fillStyle = `rgba(255,255,255,${0.03 + Math.random() * 0.05})`;
+      ctx.fillRect(0, y, s, 2);
+    }
+    for (let i = 0; i < 18; i++) {
+      ctx.strokeStyle = `rgba(15,23,42,${0.12 + Math.random() * 0.15})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(Math.random() * s, 0);
+      ctx.lineTo(Math.random() * s, s);
+      ctx.stroke();
+    }
+  });
+}
+
+export function createBrickBuildTexture() {
+  return canvasTex((ctx, s) => {
+    ctx.fillStyle = '#7f1d1d';
+    ctx.fillRect(0, 0, s, s);
+    const bw = s / 4;
+    const bh = s / 8;
+    for (let row = 0; row < 8; row++) {
+      const offset = row % 2 ? bw / 2 : 0;
+      for (let col = -1; col < 5; col++) {
+        ctx.fillStyle = `rgb(${140 + Math.random() * 40},${55 + Math.random() * 25},${40 + Math.random() * 20})`;
+        ctx.fillRect(col * bw + offset + 2, row * bh + 2, bw - 4, bh - 4);
+      }
+    }
+  });
+}
+
 export function createWaterTexture() {
   return canvasTex((ctx, s) => {
     const grad = ctx.createLinearGradient(0, 0, s, s);
