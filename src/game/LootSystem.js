@@ -1,24 +1,12 @@
-import * as THREE from 'three';
-import { COLORS, LOOT } from './constants.js';
-import { WEAPON_ORDER } from './weapons.js';
-
-const LOOT_DEFS = {
-  materials: { color: 0xfbbf24, label: 'Materials', y: 0.8 },
-  ammo: { color: 0x60a5fa, label: 'Ammo', y: 0.8 },
-  shield: { color: 0x06b6d4, label: 'Shield Potion', y: 0.8 },
-  medkit: { color: 0xef4444, label: 'Medkit', y: 0.8 },
-  ar: { color: 0x64748b, label: 'Assault Rifle', y: 1 },
-  shotgun: { color: 0x78716c, label: 'Shotgun', y: 1 },
-  sniper: { color: 0x334155, label: 'Sniper', y: 1 },
-};
+import { LOOT } from './constants.js';
+import { LOOT_DEFS, createLootPickup, createChest } from './lootVisuals.js';
 
 export class LootSystem {
-  constructor(scene, spawnPoints) {
+  constructor(scene) {
     this.scene = scene;
     this.items = [];
     this.chests = [];
     this.pickupFeed = [];
-    this.raycaster = new THREE.Raycaster();
   }
 
   generate(spawnPoints) {
@@ -29,7 +17,7 @@ export class LootSystem {
       this.spawnChest(x, z);
     }
 
-    const types = ['materials', 'materials', 'ammo', 'shield', 'medkit', 'ar', 'shotgun', 'sniper'];
+    const types = ['wood', 'wood', 'brick', 'metal', 'ammo_rifle', 'ammo_rifle', 'ammo_shells', 'ammo_sniper', 'shield', 'medkit', 'ar', 'shotgun', 'sniper'];
     for (let i = 0; i < 40; i++) {
       const pt = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
       const x = pt.x + (Math.random() - 0.5) * 30;
@@ -40,49 +28,37 @@ export class LootSystem {
   }
 
   spawnChest(x, z) {
-    const group = new THREE.Group();
-    const body = new THREE.Mesh(
-      new THREE.BoxGeometry(1.4, 1, 1),
-      new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.55, roughness: 0.35, emissive: 0x92400e, emissiveIntensity: 0.15 })
-    );
-    body.position.y = 0.5;
-    const lid = new THREE.Mesh(
-      new THREE.BoxGeometry(1.5, 0.3, 1.1),
-      new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.6, roughness: 0.3 })
-    );
-    lid.position.y = 1.1;
-    group.add(body, lid);
-    group.position.set(x, 0, z);
-    group.userData.isChest = true;
-    group.userData.opened = false;
+    const group = createChest(x, z);
     this.scene.add(group);
     this.chests.push(group);
   }
 
   spawnGroundLoot(x, z, type) {
-    const def = LOOT_DEFS[type];
-    const mesh = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.35, 0),
-      new THREE.MeshStandardMaterial({ color: def.color, emissive: def.color, emissiveIntensity: 0.25 })
-    );
-    mesh.position.set(x, def.y, z);
-    mesh.userData.lootType = type;
-    mesh.userData.spin = Math.random() * Math.PI * 2;
-    this.scene.add(mesh);
-    this.items.push(mesh);
+    const group = createLootPickup(type);
+    group.position.set(x, 0, z);
+    this.scene.add(group);
+    this.items.push(group);
   }
 
   update(dt, player, weapons, onPickup) {
+    const t = performance.now() * 0.002;
     for (const item of this.items) {
-      item.rotation.y += dt * 2;
-      item.position.y = LOOT_DEFS[item.userData.lootType].y + Math.sin(item.userData.spin + performance.now() * 0.002) * 0.1;
+      item.userData.spin += dt * 1.6;
+      if (item.userData.model) {
+        item.userData.model.rotation.y = item.userData.spin;
+        item.userData.model.position.y = 0.08 + Math.sin(item.userData.spin + t) * 0.08;
+      }
+      if (item.userData.glow?.material) {
+        item.userData.glow.material.opacity = 0.22 + Math.sin(t * 2 + item.userData.spin) * 0.1;
+      }
 
       const dist = item.position.distanceTo(player.body.position);
       if (dist < LOOT.pickupRange) {
-        this.applyLoot(item.userData.lootType, player, weapons);
+        const type = item.userData.lootType;
+        this.applyLoot(type, player, weapons);
         this.scene.remove(item);
         this.items = this.items.filter((i) => i !== item);
-        if (onPickup) onPickup(LOOT_DEFS[item.userData.lootType].label);
+        if (onPickup) onPickup(LOOT_DEFS[type].label, type);
       }
     }
   }
@@ -94,18 +70,22 @@ export class LootSystem {
       if (dist > LOOT.chestRange) continue;
 
       chest.userData.opened = true;
-      chest.children[1].rotation.x = -Math.PI / 3;
-      chest.children[0].material.color.setHex(0x4b5563);
+      if (chest.userData.lid) chest.userData.lid.rotation.x = -Math.PI / 2.4;
+      if (chest.userData.body?.material) chest.userData.body.material.color.setHex(0x4b5563);
+      if (chest.userData.labelSprite) chest.userData.labelSprite.visible = false;
 
       const lootRoll = Math.random();
-      if (lootRoll < 0.3) this.applyLoot('ar', player, weapons);
-      else if (lootRoll < 0.5) this.applyLoot('shotgun', player, weapons);
-      else if (lootRoll < 0.6) this.applyLoot('sniper', player, weapons);
-      else if (lootRoll < 0.75) this.applyLoot('materials', player, weapons, 50 + Math.floor(Math.random() * 40));
-      else if (lootRoll < 0.9) this.applyLoot('shield', player, weapons);
-      else this.applyLoot('medkit', player, weapons);
+      let type = 'medkit';
+      if (lootRoll < 0.3) type = 'ar';
+      else if (lootRoll < 0.5) type = 'shotgun';
+      else if (lootRoll < 0.6) type = 'sniper';
+      else if (lootRoll < 0.7) type = 'wood';
+      else if (lootRoll < 0.78) type = 'brick';
+      else if (lootRoll < 0.84) type = 'metal';
+      else if (lootRoll < 0.9) type = 'shield';
 
-      if (onPickup) onPickup('Chest opened!');
+      this.applyLoot(type, player, weapons);
+      if (onPickup) onPickup(`Chest: ${LOOT_DEFS[type].label}`, type);
       return true;
     }
     return false;
@@ -114,10 +94,24 @@ export class LootSystem {
   applyLoot(type, player, weapons, amount) {
     switch (type) {
       case 'materials':
-        player.materials = (player.materials || 0) + (amount || 25 + Math.floor(Math.random() * 20));
+      case 'wood':
+        player.addMats('wood', amount || 25 + Math.floor(Math.random() * 20));
+        break;
+      case 'brick':
+        player.addMats('brick', amount || 20 + Math.floor(Math.random() * 16));
+        break;
+      case 'metal':
+        player.addMats('metal', amount || 12 + Math.floor(Math.random() * 12));
         break;
       case 'ammo':
-        for (const id of WEAPON_ORDER) weapons.addAmmo(id, 15 + Math.floor(Math.random() * 20));
+      case 'ammo_rifle':
+        weapons.addAmmo('assault', amount || 24 + Math.floor(Math.random() * 18));
+        break;
+      case 'ammo_shells':
+        weapons.addAmmo('shotgun', amount || 6 + Math.floor(Math.random() * 8));
+        break;
+      case 'ammo_sniper':
+        weapons.addAmmo('sniper', amount || 4 + Math.floor(Math.random() * 5));
         break;
       case 'shield':
         player.shield = Math.min(player.maxShield || 100, (player.shield || 0) + 25);

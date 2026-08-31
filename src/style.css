@@ -38,9 +38,8 @@ body {
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.12), transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(99, 102, 241, 0.15), transparent 45%),
-    linear-gradient(160deg, rgba(10, 14, 20, 0.96), rgba(15, 23, 42, 0.98));
+    linear-gradient(160deg, rgba(10, 14, 20, 0.82), rgba(15, 23, 42, 0.88)),
+    url("/banner.png") center / cover no-repeat;
   padding: 2rem;
 }
 
@@ -57,11 +56,25 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 1rem;
+  gap: 0.85rem;
   padding: 2rem;
   border: 1px solid rgba(148, 163, 184, 0.15);
   border-radius: 16px;
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(15, 23, 42, 0.72);
+  overflow: hidden;
+}
+
+.menu-logo {
+  width: min(100%, 280px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 18px;
+  margin: 0 auto;
+  display: block;
+  border: 2px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+  background: #020617;
 }
 
 .menu-kicker {
@@ -176,13 +189,11 @@ body {
 }
 
 #menu h1 {
-  font-size: 3rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, #5eead4, #818cf8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
 }
 
 .tagline {
@@ -190,11 +201,38 @@ body {
   font-size: 1.1rem;
 }
 
+.menu-hero .tagline,
+.menu-kicker {
+  text-align: center;
+}
+
 .hint {
   font-size: 0.9rem;
   max-width: 420px;
   text-align: center;
 }
+
+.loot-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0.2rem;
+}
+
+.loot-legend .leg {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.loot-legend .mats { background: rgba(180, 83, 9, 0.4); border-color: #fbbf24; color: #fde68a; }
+.loot-legend .ammo { background: rgba(37, 99, 235, 0.35); border-color: #60a5fa; color: #bfdbfe; }
+.loot-legend .shield { background: rgba(8, 145, 178, 0.35); border-color: #22d3ee; color: #a5f3fc; }
+.loot-legend .medkit { background: rgba(220, 38, 38, 0.35); border-color: #fca5a5; color: #fecaca; }
+.loot-legend .gun { background: rgba(100, 116, 139, 0.35); border-color: #94a3b8; color: #e2e8f0; }
+.loot-legend .chest { background: rgba(217, 119, 6, 0.35); border-color: #fbbf24; color: #fde68a; }
 
 #play-btn,
 #respawn-btn {
@@ -360,16 +398,14 @@ kbd {
   background: linear-gradient(90deg, #22d3ee, #6366f1);
 }
 
-#victory-screen {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: rgba(10, 14, 20, 0.88);
-  gap: 1rem;
-  text-align: center;
+.end-logo {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  border-radius: 18px;
+  border: 2px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  background: #020617;
 }
 
 #victory-screen h2 {
@@ -516,14 +552,158 @@ kbd {
   transform: translateY(-50%);
 }
 
-#top-bar {
-  position: absolute;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
+.update-log {
+  max-height: 280px;
+  overflow: auto;
   display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.patch header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.7rem;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+}
+
+.patch strong { color: #fde68a; }
+.patch span { color: #64748b; font-size: 0.8rem; }
+.patch em { color: #e2e8f0; font-style: normal; font-weight: 700; }
+.patch ul { margin: 0; padding-left: 1.1rem; color: #94a3b8; font-size: 0.85rem; }
+.patch li { margin: 0.15rem 0; }
+
+#fn-hud {
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 1.1rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: 1rem;
+  pointer-events: none;
+}
+
+#vitals {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+#hotbar-wrap {
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: 0.4rem;
+  pointer-events: auto;
+}
+
+#mat-stack {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.mat-slot {
+  width: 70px;
+  height: 52px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.55);
+  color: #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 2px;
+}
+
+.mat-slot span { font-size: 0.62rem; letter-spacing: 0.04em; text-transform: uppercase; color: #94a3b8; }
+.mat-slot b { font-size: 0.85rem; line-height: 1; }
+.mat-slot.active { border-color: #fbbf24; box-shadow: 0 0 0 1px #fbbf24; }
+
+.mat-icon {
+  width: 16px;
+  height: 10px;
+  border-radius: 2px;
+  display: block;
+}
+.mat-icon.wood { background: linear-gradient(#d97706, #92400e); }
+.mat-icon.brick { background: linear-gradient(#ef4444, #7f1d1d); }
+.mat-icon.metal { background: linear-gradient(#e2e8f0, #64748b); }
+
+.hotbar-row {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.fn-slot {
+  width: 86px;
+  height: 72px;
+  background: rgba(8, 12, 20, 0.72);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 4px;
+}
+
+.fn-slot em {
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.fn-slot strong {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+}
+
+.fn-slot.active {
+  border-color: #f8fafc;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25), inset 0 0 12px rgba(255, 255, 255, 0.08);
+}
+
+.slot-art {
+  width: 42px;
+  height: 18px;
+  margin-bottom: 4px;
+  border-radius: 2px;
+}
+.slot-art.rifle { background: linear-gradient(90deg, #64748b, #94a3b8); }
+.slot-art.shotgun { background: linear-gradient(90deg, #78716c, #d6d3d1); width: 34px; }
+.slot-art.sniper { background: linear-gradient(90deg, #1e293b, #facc15); width: 50px; }
+.slot-art.wall { background: #b45309; width: 28px; height: 28px; }
+.slot-art.floor { background: #ca8a04; width: 32px; height: 10px; }
+.slot-art.ramp {
+  width: 0;
+  height: 0;
+  background: none;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-bottom: 22px solid #d97706;
+}
+
+#ammo-readout {
+  text-align: center;
+  text-shadow: 0 2px 8px #000;
+}
+
+#fn-hud #mode-badge {
+  pointer-events: none;
+  align-self: flex-end;
 }
 
 #health-bar,
@@ -569,6 +749,24 @@ kbd {
   border-radius: 6px;
   font-weight: 600;
   font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.hud-chip {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.hud-chip.mats {
+  background: #b45309;
+  color: #fde68a;
+  border: 1px solid #fbbf24;
 }
 
 #mat-count {
@@ -576,14 +774,7 @@ kbd {
 }
 
 #bottom-bar {
-  position: absolute;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  display: none;
 }
 
 #weapon-name {
@@ -717,13 +908,28 @@ kbd {
 }
 
 .loot-entry {
-  padding: 0.25rem 0.6rem;
+  padding: 0.3rem 0.65rem;
   background: rgba(251, 191, 36, 0.25);
   border: 1px solid rgba(251, 191, 36, 0.5);
   border-radius: 4px;
   color: #fde68a;
   animation: fadeKill 2.5s forwards;
+  font-weight: 700;
 }
+
+.loot-entry.materials,
+.loot-entry.wood { background: rgba(180, 83, 9, 0.45); border-color: #fbbf24; color: #fde68a; }
+.loot-entry.brick { background: rgba(185, 28, 28, 0.45); border-color: #fca5a5; color: #fecaca; }
+.loot-entry.metal { background: rgba(100, 116, 139, 0.45); border-color: #cbd5e1; color: #e2e8f0; }
+.loot-entry.ammo,
+.loot-entry.ammo_rifle { background: rgba(37, 99, 235, 0.4); border-color: #60a5fa; color: #bfdbfe; }
+.loot-entry.ammo_shells { background: rgba(220, 38, 38, 0.4); border-color: #fca5a5; color: #fecaca; }
+.loot-entry.ammo_sniper { background: rgba(202, 138, 4, 0.4); border-color: #facc15; color: #fef08a; }
+.loot-entry.shield { background: rgba(8, 145, 178, 0.45); border-color: #22d3ee; color: #a5f3fc; }
+.loot-entry.medkit { background: rgba(220, 38, 38, 0.45); border-color: #fca5a5; color: #fecaca; }
+.loot-entry.ar { background: rgba(100, 116, 139, 0.45); border-color: #94a3b8; color: #e2e8f0; }
+.loot-entry.shotgun { background: rgba(68, 64, 60, 0.55); border-color: #d6d3d1; color: #f5f5f4; }
+.loot-entry.sniper { background: rgba(51, 65, 85, 0.55); border-color: #facc15; color: #fef08a; }
 
 #minimap-wrap {
   position: absolute;

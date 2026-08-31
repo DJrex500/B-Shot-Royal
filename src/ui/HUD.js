@@ -1,6 +1,7 @@
-import { BUILD_PIECES, MAP_SIZE } from '../game/constants.js';
+import { MAP_SIZE } from '../game/constants.js';
 import { WEAPONS } from '../game/weapons.js';
 import { loadSettings, saveSettings } from '../game/Settings.js';
+import { CHANGELOG } from '../game/changelog.js';
 
 export class HUD {
   constructor() {
@@ -16,13 +17,16 @@ export class HUD {
     this.shieldFill = document.getElementById('shield-fill');
     this.healthText = document.getElementById('health-text');
     this.shieldText = document.getElementById('shield-text');
-    this.matCount = document.getElementById('mat-count');
+    this.woodCount = document.getElementById('wood-count');
+    this.brickCount = document.getElementById('brick-count');
+    this.metalCount = document.getElementById('metal-count');
     this.weaponName = document.getElementById('weapon-name');
     this.ammoCurrent = document.getElementById('ammo-current');
     this.ammoReserve = document.getElementById('ammo-reserve');
-    this.buildInfo = document.getElementById('build-info');
-    this.buildPiece = document.getElementById('build-piece');
+    this.weaponHotbar = document.getElementById('weapon-hotbar');
+    this.buildHotbar = document.getElementById('build-hotbar');
     this.modeBadge = document.getElementById('mode-badge');
+    this.selectedMat = 'wood';
     this.killFeed = document.getElementById('kill-feed');
     this.lootFeed = document.getElementById('loot-feed');
     this.deathStats = document.getElementById('death-stats');
@@ -33,8 +37,8 @@ export class HUD {
     this.damageFlash = document.getElementById('damage-flash');
     this.reloadBar = document.getElementById('reload-bar');
     this.reloadFill = document.getElementById('reload-fill');
-    this.weaponSlots = document.querySelectorAll('#weapon-slots .slot');
-    this.buildSlots = document.querySelectorAll('#build-slots .slot');
+    this.weaponSlots = document.querySelectorAll('#weapon-hotbar .fn-slot');
+    this.buildSlots = document.querySelectorAll('#build-hotbar .fn-slot');
     this.crosshair = document.getElementById('crosshair');
     this.scopeOverlay = document.getElementById('scope-overlay');
     this.stormVignette = document.getElementById('storm-vignette');
@@ -90,6 +94,27 @@ export class HUD {
     sensEl.addEventListener('input', persist);
     stormEl.addEventListener('input', persist);
     volEl.addEventListener('input', persist);
+
+    document.querySelectorAll('.mat-slot').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        this.selectedMat = btn.dataset.mat;
+        this._matClicked = btn.dataset.mat;
+      });
+    });
+
+    const log = document.getElementById('update-log');
+    if (log) {
+      log.innerHTML = CHANGELOG.map((entry) => `
+        <article class="patch">
+          <header>
+            <strong>${entry.version}</strong>
+            <span>${entry.date}</span>
+            <em>${entry.title}</em>
+          </header>
+          <ul>${entry.items.map((item) => `<li>${item}</li>`).join('')}</ul>
+        </article>
+      `).join('');
+    }
   }
 
   applySettingsToUI() {
@@ -190,9 +215,9 @@ export class HUD {
     }, 700);
   }
 
-  addLoot(text) {
+  addLoot(text, type = 'materials') {
     const el = document.createElement('div');
-    el.className = 'loot-entry';
+    el.className = `loot-entry ${type}`;
     el.textContent = text;
     this.lootFeed.appendChild(el);
     setTimeout(() => el.remove(), 2500);
@@ -284,13 +309,22 @@ export class HUD {
     const maxS = player.maxShield || 100;
     const health = Number.isFinite(player.health) ? Math.max(0, player.health) : 0;
     const shield = Number.isFinite(player.shield) ? Math.max(0, player.shield) : 0;
-    const mats = Number.isFinite(player.materials) ? player.materials : 0;
+    if (this._matClicked) {
+      player.buildMat = this._matClicked;
+      this._matClicked = null;
+    }
+    this.selectedMat = player.buildMat || 'wood';
 
     this.healthFill.style.width = `${(health / maxH) * 100}%`;
     this.shieldFill.style.width = `${(shield / maxS) * 100}%`;
     this.healthText.textContent = Math.ceil(health);
     this.shieldText.textContent = Math.ceil(shield);
-    this.matCount.textContent = mats;
+    if (this.woodCount) this.woodCount.textContent = Math.floor(player.mats?.wood || 0);
+    if (this.brickCount) this.brickCount.textContent = Math.floor(player.mats?.brick || 0);
+    if (this.metalCount) this.metalCount.textContent = Math.floor(player.mats?.metal || 0);
+    document.querySelectorAll('.mat-slot').forEach((el) => {
+      el.classList.toggle('active', el.dataset.mat === player.buildMat);
+    });
 
     const w = WEAPONS[weaponSystem.currentId];
     const st = weaponSystem.currentState;
@@ -338,7 +372,8 @@ export class HUD {
       this.interactHint.textContent = '[E] Open Chest';
       this.interactHint.classList.remove('hidden');
     } else if (interact.harvestTarget) {
-      this.interactHint.textContent = `[F] Harvest ${interact.harvestTarget}`;
+      const harvestName = interact.harvestTarget === 'stone' ? 'brick' : interact.harvestTarget;
+      this.interactHint.textContent = `[F] Harvest ${harvestName}`;
       this.interactHint.classList.remove('hidden');
     } else if (!buildMode) {
       this.interactHint.classList.add('hidden');
@@ -347,8 +382,8 @@ export class HUD {
     }
 
     if (buildMode) {
-      this.buildInfo.classList.remove('hidden');
-      this.buildPiece.textContent = BUILD_PIECES[pieceType].name;
+      this.weaponHotbar?.classList.add('hidden');
+      this.buildHotbar?.classList.remove('hidden');
       this.modeBadge.textContent = 'BUILD';
       this.modeBadge.classList.add('build-mode');
       this.weaponSlots.forEach((el) => el.classList.remove('active'));
@@ -356,7 +391,8 @@ export class HUD {
         el.classList.toggle('active', el.dataset.slot === pieceType);
       });
     } else {
-      this.buildInfo.classList.add('hidden');
+      this.weaponHotbar?.classList.remove('hidden');
+      this.buildHotbar?.classList.add('hidden');
       this.modeBadge.textContent = 'COMBAT';
       this.modeBadge.classList.remove('build-mode');
       this.buildSlots.forEach((el) => el.classList.remove('active'));

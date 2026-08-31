@@ -11,7 +11,7 @@ import { StormSystem } from './StormSystem.js';
 import { spawnEnemies, MAX_ENEMIES } from './Enemy.js';
 import { HUD } from '../ui/HUD.js';
 import { loadSettings } from './Settings.js';
-import { STORM } from './constants.js';
+import { STORM, PLAYER } from './constants.js';
 import { AudioManager } from './Audio.js';
 import { Effects } from './Effects.js';
 
@@ -171,7 +171,7 @@ export class Game {
   onEnemyDeath(pos) {
     this.effects.deathBurst(new THREE.Vector3(pos.x, pos.y + 0.5, pos.z));
     if (Math.random() < 0.55) {
-      const types = ['materials', 'materials', 'ammo', 'shield'];
+      const types = ['wood', 'brick', 'metal', 'ammo_rifle', 'ammo_shells', 'ammo_sniper', 'shield'];
       this.loot.spawnLootAt(pos.x + (Math.random() - 0.5) * 2, pos.z + (Math.random() - 0.5) * 2, types[Math.floor(Math.random() * types.length)]);
     }
     this.checkVictory();
@@ -212,26 +212,44 @@ export class Game {
   }
 
   spendMaterials(amount) {
-    if (this.player.materials >= amount) {
-      this.player.materials -= amount;
+    const key = this.player.buildMat || 'wood';
+    if ((this.player.mats[key] || 0) >= amount) {
+      this.player.mats[key] -= amount;
       return true;
     }
     return false;
   }
 
   updatePlayerGround() {
-    const from = new CANNON.Vec3(
-      this.player.body.position.x,
-      this.player.body.position.y + 0.2,
-      this.player.body.position.z
-    );
-    const to = new CANNON.Vec3(from.x, from.y - 1.3, from.z);
-    this.physicsWorld.raycastClosest(from, to, {}, this.groundRayResult);
-    this.player.onGround = this.groundRayResult.hasHit;
+    const p = this.player.body.position;
+    const feet = p.y - PLAYER.radius;
+    const offsets = [
+      [0, 0],
+      [0.2, 0],
+      [-0.2, 0],
+      [0, 0.2],
+      [0, -0.2],
+    ];
+
+    let grounded = false;
+    for (const [ox, oz] of offsets) {
+      const from = new CANNON.Vec3(p.x + ox, feet + 0.12, p.z + oz);
+      const to = new CANNON.Vec3(p.x + ox, feet - 0.28, p.z + oz);
+      this.physicsWorld.raycastAll(from, to, {}, (result) => {
+        if (grounded) return;
+        if (result.hasHit && result.body && result.body !== this.player.body) {
+          grounded = true;
+        }
+      });
+      if (grounded) break;
+    }
+
+    const notRising = this.player.body.velocity.y <= 2.5;
+    this.player.onGround = Boolean(grounded && notRising && this.player.jumpLock <= 0);
   }
 
-  onPickup(msg) {
-    this.hud.addLoot(msg);
+  onPickup(msg, type) {
+    this.hud.addLoot(msg, type);
     this.audio.pickup();
   }
 
@@ -255,15 +273,19 @@ export class Game {
       this.player.setViewMode(this.building.enabled ? 'build' : 'combat');
     }
 
+    if (this.input.wasPressed('KeyQ')) {
+      this.player.cycleBuildMat();
+    }
+
     if (this.input.wasAnyPressed('KeyE')) {
-      if (this.loot.tryOpenChest(this.player, this.weapons, (msg) => this.onPickup(msg))) {
+      if (this.loot.tryOpenChest(this.player, this.weapons, (msg, type) => this.onPickup(msg, type))) {
         this.audio.chest();
       }
     }
 
     if (this.input.wasAnyPressed('KeyF') && !inBuild) {
-      if (this.harvest.tryHarvest(this.player, this.harvestables, (msg) => {
-        this.onPickup(msg);
+      if (this.harvest.tryHarvest(this.player, this.harvestables, (msg, type) => {
+        this.onPickup(msg, type);
         this.audio.harvest();
       })) this.audio.harvest();
     }
@@ -307,7 +329,7 @@ export class Game {
       this.weapons.update(dt, this.input, this.enemies, this.buildMeshes, scoped);
     }
 
-    this.building.update(dt, this.player, () => this.player.materials);
+    this.building.update(dt, this.player, () => this.player.mats[this.player.buildMat] || 0);
     this.weapons.updateTracers(dt);
     this.input.endFrame();
   }
@@ -344,7 +366,7 @@ export class Game {
       this.matchTime += dt;
       this.player.syncCamera(dt);
       this.updateEnemies(dt);
-      this.loot.update(dt, this.player, this.weapons, (msg) => this.onPickup(msg));
+      this.loot.update(dt, this.player, this.weapons, (msg, type) => this.onPickup(msg, type));
       this.harvest.update(dt);
       this.effects.update(dt);
       const stormState = this.storm.update(dt, this.player);

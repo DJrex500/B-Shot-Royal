@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { createCharacter, flashCharacter, resetCharacterColors, SKINS } from './CharacterModel.js';
+import { createCharacter, flashCharacter, resetCharacterColors } from './CharacterModel.js';
+import { SKINS } from './skins.js';
 import { BOT } from './constants.js';
 
 const MAX_ENEMIES = 10;
@@ -81,6 +82,26 @@ export class Enemy {
     return new THREE.Vector3(p.x, p.y + 0.6, p.z);
   }
 
+  isBlocked(from, to, blockers = []) {
+    const delta = to.clone().sub(from);
+    const dist = delta.length();
+    if (dist < 0.05 || !blockers.length) return false;
+    const dir = delta.normalize();
+    this.raycaster.set(from, dir);
+    this.raycaster.far = Math.max(0.1, dist - 0.2);
+    const hits = this.raycaster.intersectObjects(blockers, true);
+    for (const hit of hits) {
+      if (hit.distance >= dist - 0.2) continue;
+      let obj = hit.object;
+      while (obj) {
+        if (obj.userData?.isBuildPiece) return true;
+        obj = obj.parent;
+      }
+      return true;
+    }
+    return false;
+  }
+
   tryShoot(player, blockers = []) {
     const eye = this.getEyePosition();
     const target = new THREE.Vector3(
@@ -88,20 +109,9 @@ export class Enemy {
       player.body.position.y + 0.8,
       player.body.position.z
     );
-    const toPlayer = target.clone().sub(eye);
-    const dist = toPlayer.length();
+    const dist = eye.distanceTo(target);
     if (dist > this.shootRange) return false;
-
-    const dir = toPlayer.normalize();
-    dir.x += (Math.random() - 0.5) * BOT.aimSpread;
-    dir.y += (Math.random() - 0.5) * BOT.aimSpread * 0.7;
-    dir.z += (Math.random() - 0.5) * BOT.aimSpread;
-    dir.normalize();
-
-    this.raycaster.set(eye, dir);
-    this.raycaster.far = dist;
-    const hits = this.raycaster.intersectObjects(blockers, true);
-    if (hits.length > 0 && hits[0].distance < dist - 0.8) return false;
+    if (this.isBlocked(eye, target, blockers)) return false;
 
     const dmg = BOT.shootDamageMin + Math.floor(Math.random() * (BOT.shootDamageMax - BOT.shootDamageMin + 1));
     player.takeDamage(dmg, { fromBot: true });
@@ -149,8 +159,12 @@ export class Enemy {
     }
 
     if (dist <= this.meleeRange && vertDiff < 1.2 && this.attackCooldown <= 0) {
-      player.takeDamage(BOT.meleeDamage, { fromBot: true });
-      this.attackCooldown = BOT.meleeCooldown;
+      const from = this.getEyePosition();
+      const to = new THREE.Vector3(px, py + 0.8, pz);
+      if (!this.isBlocked(from, to, blockers)) {
+        player.takeDamage(BOT.meleeDamage, { fromBot: true });
+        this.attackCooldown = BOT.meleeCooldown;
+      }
     }
 
     this.mesh.position.set(ex, this.body.position.y - 0.2, ez);

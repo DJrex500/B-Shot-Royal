@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>B-Shot Royal — Skin Lab</title>
+    <link rel="icon" type="image/png" href="bshot-royale-logo.png" />
+    <link rel="stylesheet" href="/src/skin-lab.css" />
+  </head>
+  <body>
+    <header>
+      <img class="lab-logo" src="bshot-royale-logo.png" alt="B-Shot Royale" />
+      <h1>Skin Lab</h1>
+      <p>
+        Pick colors here, then copy the code into
+        <code>src/game/skins.js</code>.
+        This page does not save the file for you.
+        <a href="/">Back to the game</a>
+      </p>
+    </header>
+
+    <div class="layout">
+      <section class="card">
+        <h2>Skins</h2>
+        <div id="gallery" class="gallery"></div>
+      </section>
+
+      <section class="card">
+        <h2>Preview</h2>
+        <div class="preview-wrap">
+          <div id="mannequin" class="mannequin">
+            <div class="part hair"></div>
+            <div class="part head"></div>
+            <div class="part visor"></div>
+            <div class="part shoulder-l"></div>
+            <div class="part shoulder-r"></div>
+            <div class="part torso"></div>
+            <div class="part stripe"></div>
+            <div class="part arm-l"></div>
+            <div class="part arm-r"></div>
+            <div class="part glove-l"></div>
+            <div class="part glove-r"></div>
+            <div class="part pants"></div>
+            <div class="part leg-l"></div>
+            <div class="part leg-r"></div>
+            <div class="part boot-l"></div>
+            <div class="part boot-r"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Colors</h2>
+        <label class="field" style="grid-template-columns: 72px 1fr">
+          <span>Name</span>
+          <input id="skin-name" type="text" />
+        </label>
+        <div id="fields" class="fields" style="margin-top: 12px"></div>
+        <div class="actions">
+          <button class="action" id="btn-new" type="button">New blank skin</button>
+          <button class="action" id="btn-dupe" type="button">Duplicate</button>
+          <button class="action" id="btn-copy-one" type="button">Copy this skin</button>
+          <button class="action primary" id="btn-copy-all" type="button">Copy all SKINS</button>
+        </div>
+        <textarea id="code-out" readonly></textarea>
+        <p class="note">Paste the copied object into the SKINS array in src/game/skins.js, save, then refresh the game.</p>
+      </section>
+    </div>
+
+    <script type="module" src="/src/skin-lab.js"></script>
+  </body>
+</html>
