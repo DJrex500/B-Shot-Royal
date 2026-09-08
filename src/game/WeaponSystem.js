@@ -142,7 +142,7 @@ export class WeaponSystem {
       return;
     }
 
-    if (input.wasPressed('KeyR') && st.ammo < w.magSize && st.reserve > 0) {
+    if (input.wasAction('reload') && st.ammo < w.magSize && st.reserve > 0) {
       st.reloading = true;
       st.reloadTimer = w.reloadTime;
       if (this.audio) this.audio.reload();

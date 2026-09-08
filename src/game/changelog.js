@@ -4,6 +4,23 @@
  */
 export const CHANGELOG = [
   {
+    version: '0.3.4',
+    date: '2026-09-08',
+    title: 'Remappable Controls',
+    items: [
+      'Settings now lets you rebind movement and actions (for example W to Up Arrow)',
+      'Play tab and in-world prompts show your current keys',
+    ],
+  },
+  {
+    version: '0.3.3',
+    date: '2026-09-08',
+    title: 'FOV Slider',
+    items: [
+      'Settings now has a Field of View slider (60–110)',
+    ],
+  },
+  {
     version: '0.3.2',
     date: '2026-08-31',
     title: 'Jump Fix',

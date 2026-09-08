@@ -1,6 +1,6 @@
 import { MAP_SIZE } from '../game/constants.js';
 import { WEAPONS } from '../game/weapons.js';
-import { loadSettings, saveSettings } from '../game/Settings.js';
+import { loadSettings, saveSettings, BIND_ACTIONS, DEFAULT_BINDS, formatKeyCode } from '../game/Settings.js';
 import { CHANGELOG } from '../game/changelog.js';
 
 export class HUD {
@@ -48,24 +48,36 @@ export class HUD {
     this.settings = loadSettings();
     this.kills = 0;
     this.pois = [];
+    this.listeningAction = null;
+    this._onBindsChange = null;
 
     this.bindMenu();
     this.applySettingsToUI();
   }
 
   bindMenu() {
+    const openTab = (name) => {
+      const tab = document.querySelector(`.menu-tab[data-tab="${name}"]`);
+      const panel = document.getElementById(`tab-${name}`);
+      if (!tab || !panel) return;
+      document.querySelectorAll('.menu-tab').forEach((t) => t.classList.remove('active'));
+      document.querySelectorAll('.menu-tab-content').forEach((c) => c.classList.add('hidden'));
+      tab.classList.add('active');
+      panel.classList.remove('hidden');
+    };
+
     document.querySelectorAll('.menu-tab').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.menu-tab').forEach((t) => t.classList.remove('active'));
-        tab.classList.add('active');
-        document.querySelectorAll('.menu-tab-content').forEach((c) => c.classList.add('hidden'));
-        document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
-      });
+      tab.addEventListener('click', () => openTab(tab.dataset.tab));
     });
+
+    const hashTab = location.hash.replace('#', '');
+    if (hashTab === 'updates' || hashTab === 'settings') openTab(hashTab);
 
     const botsEl = document.getElementById('setting-bots');
     const sensEl = document.getElementById('setting-sens');
     const sensVal = document.getElementById('setting-sens-val');
+    const fovEl = document.getElementById('setting-fov');
+    const fovVal = document.getElementById('setting-fov-val');
     const stormEl = document.getElementById('setting-storm');
     const stormVal = document.getElementById('setting-storm-val');
     const volEl = document.getElementById('setting-volume');
@@ -73,18 +85,22 @@ export class HUD {
 
     botsEl.checked = this.settings.botsEnabled;
     sensEl.value = this.settings.mouseSensitivity;
+    fovEl.value = this.settings.fov ?? 75;
     stormEl.value = this.settings.stormSpeed;
     volEl.value = this.settings.volume ?? 0.7;
     sensVal.textContent = this.settings.mouseSensitivity.toFixed(1);
+    fovVal.textContent = String(Math.round(this.settings.fov ?? 75));
     stormVal.textContent = this.settings.stormSpeed.toFixed(1);
     volVal.textContent = (this.settings.volume ?? 0.7).toFixed(1);
 
     const persist = () => {
       this.settings.botsEnabled = botsEl.checked;
       this.settings.mouseSensitivity = parseFloat(sensEl.value);
+      this.settings.fov = parseFloat(fovEl.value);
       this.settings.stormSpeed = parseFloat(stormEl.value);
       this.settings.volume = parseFloat(volEl.value);
       sensVal.textContent = this.settings.mouseSensitivity.toFixed(1);
+      fovVal.textContent = String(Math.round(this.settings.fov));
       stormVal.textContent = this.settings.stormSpeed.toFixed(1);
       volVal.textContent = this.settings.volume.toFixed(1);
       saveSettings(this.settings);
@@ -92,8 +108,12 @@ export class HUD {
 
     botsEl.addEventListener('change', persist);
     sensEl.addEventListener('input', persist);
+    fovEl.addEventListener('input', persist);
     stormEl.addEventListener('input', persist);
     volEl.addEventListener('input', persist);
+
+    this.bindControlMapper();
+    this.renderControlsSummary();
 
     document.querySelectorAll('.mat-slot').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -120,14 +140,111 @@ export class HUD {
   applySettingsToUI() {
     const botsEl = document.getElementById('setting-bots');
     const sensEl = document.getElementById('setting-sens');
+    const fovEl = document.getElementById('setting-fov');
+    const fovVal = document.getElementById('setting-fov-val');
     const stormEl = document.getElementById('setting-storm');
     if (botsEl) botsEl.checked = this.settings.botsEnabled;
     if (sensEl) sensEl.value = this.settings.mouseSensitivity;
+    if (fovEl) fovEl.value = this.settings.fov ?? 75;
+    if (fovVal) fovVal.textContent = String(Math.round(this.settings.fov ?? 75));
     if (stormEl) stormEl.value = this.settings.stormSpeed;
   }
 
   getSettings() {
     return this.settings;
+  }
+
+  onBindsChange(callback) {
+    this._onBindsChange = callback;
+  }
+
+  bindLabel(action) {
+    return formatKeyCode(this.settings.binds?.[action]);
+  }
+
+  renderControlsSummary() {
+    const grid = document.getElementById('controls-grid');
+    if (!grid) return;
+    const k = (action) => this.bindLabel(action);
+    grid.innerHTML = `
+      <span><kbd>${k('forward')} ${k('left')} ${k('back')} ${k('right')}</kbd> Move</span>
+      <span><kbd>${k('sprint')}</kbd> Sprint</span>
+      <span><kbd>${k('jump')}</kbd> Jump</span>
+      <span><kbd>LMB</kbd> Shoot / Build</span>
+      <span><kbd>RMB</kbd> Aim / Rotate</span>
+      <span><kbd>${k('build')}</kbd> Build mode</span>
+      <span><kbd>${k('harvest')}</kbd> Harvest</span>
+      <span><kbd>${k('interact')}</kbd> Open chest</span>
+      <span><kbd>${k('slot1')} ${k('slot2')} ${k('slot3')}</kbd> Switch</span>
+      <span><kbd>${k('cycleMat')}</kbd> Wood / Brick / Metal</span>
+      <span><kbd>${k('reload')}</kbd> Reload</span>
+    `;
+  }
+
+  renderBindList() {
+    const list = document.getElementById('bind-list');
+    if (!list) return;
+    list.innerHTML = BIND_ACTIONS.map(({ id, label }) => {
+      const listening = this.listeningAction === id;
+      return `
+        <div class="bind-row">
+          <span>${label}</span>
+          <button type="button" class="bind-btn${listening ? ' listening' : ''}" data-bind="${id}">
+            ${listening ? 'Press a key...' : this.bindLabel(id)}
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('.bind-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const action = btn.dataset.bind;
+        this.listeningAction = this.listeningAction === action ? null : action;
+        this.renderBindList();
+      });
+    });
+  }
+
+  assignBind(action, code) {
+    const binds = { ...this.settings.binds };
+    const previous = binds[action];
+    for (const [id, bound] of Object.entries(binds)) {
+      if (id !== action && bound === code) binds[id] = previous;
+    }
+    binds[action] = code;
+    this.settings.binds = binds;
+    this.listeningAction = null;
+    saveSettings(this.settings);
+    this.renderBindList();
+    this.renderControlsSummary();
+    this._onBindsChange?.(binds);
+  }
+
+  bindControlMapper() {
+    this.renderBindList();
+
+    document.getElementById('reset-binds')?.addEventListener('click', () => {
+      this.settings.binds = { ...DEFAULT_BINDS };
+      this.listeningAction = null;
+      saveSettings(this.settings);
+      this.renderBindList();
+      this.renderControlsSummary();
+      this._onBindsChange?.(this.settings.binds);
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (!this.listeningAction) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.repeat) return;
+      if (e.code === 'Escape') {
+        this.listeningAction = null;
+        this.renderBindList();
+        return;
+      }
+      if (['MetaLeft', 'MetaRight', 'F5', 'F11', 'F12', 'Tab'].includes(e.code)) return;
+      this.assignBind(this.listeningAction, e.code);
+    }, true);
   }
 
   setPOIs(pois) {
@@ -138,6 +255,7 @@ export class HUD {
     this.playBtn.addEventListener('click', () => {
       this.settings.botsEnabled = document.getElementById('setting-bots').checked;
       this.settings.mouseSensitivity = parseFloat(document.getElementById('setting-sens').value);
+      this.settings.fov = parseFloat(document.getElementById('setting-fov').value);
       this.settings.stormSpeed = parseFloat(document.getElementById('setting-storm').value);
       this.settings.volume = parseFloat(document.getElementById('setting-volume').value);
       saveSettings(this.settings);
@@ -369,11 +487,11 @@ export class HUD {
     }
 
     if (interact.nearChest) {
-      this.interactHint.textContent = '[E] Open Chest';
+      this.interactHint.textContent = `[${this.bindLabel('interact')}] Open Chest`;
       this.interactHint.classList.remove('hidden');
     } else if (interact.harvestTarget) {
       const harvestName = interact.harvestTarget === 'stone' ? 'brick' : interact.harvestTarget;
-      this.interactHint.textContent = `[F] Harvest ${harvestName}`;
+      this.interactHint.textContent = `[${this.bindLabel('harvest')}] Harvest ${harvestName}`;
       this.interactHint.classList.remove('hidden');
     } else if (!buildMode) {
       this.interactHint.classList.add('hidden');

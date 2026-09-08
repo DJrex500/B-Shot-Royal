@@ -46,19 +46,8 @@
               <p class="tagline hint"><a href="skin-lab.html">Open Skin Lab</a> to design character colors.</p>
               <div class="controls compact">
                 <h2>Controls</h2>
-                <div class="grid">
-                  <span><kbd>W A S D</kbd> Move</span>
-                  <span><kbd>Shift</kbd> Sprint</span>
-                  <span><kbd>Space</kbd> Jump</span>
-                  <span><kbd>LMB</kbd> Shoot / Build</span>
-                  <span><kbd>RMB</kbd> Aim / Rotate</span>
-                  <span><kbd>B</kbd> Build mode</span>
-                  <span><kbd>F</kbd> Harvest</span>
-                  <span><kbd>E</kbd> Open chest</span>
-                  <span><kbd>1 2 3</kbd> Switch</span>
-                  <span><kbd>Q</kbd> Wood / Brick / Metal</span>
-                  <span><kbd>R</kbd> Reload</span>
-                </div>
+                <div id="controls-grid" class="grid"></div>
+                <p class="tagline hint">Change keys in the Settings tab.</p>
               </div>
             </div>
             <div id="tab-settings" class="menu-tab-content hidden">
@@ -75,6 +64,13 @@
                 </div>
               </div>
               <div class="setting-row">
+                <label for="setting-fov">Field of View</label>
+                <div class="setting-slider">
+                  <input type="range" id="setting-fov" min="60" max="110" step="1" value="75" />
+                  <span id="setting-fov-val">75</span>
+                </div>
+              </div>
+              <div class="setting-row">
                 <label for="setting-storm">Storm Speed</label>
                 <div class="setting-slider">
                   <input type="range" id="setting-storm" min="0.5" max="2" step="0.1" value="1" />
@@ -87,6 +83,14 @@
                   <input type="range" id="setting-volume" min="0" max="1" step="0.05" value="0.7" />
                   <span id="setting-volume-val">0.7</span>
                 </div>
+              </div>
+              <div class="bind-section">
+                <div class="bind-head">
+                  <h3>Controls</h3>
+                  <button type="button" id="reset-binds">Reset keys</button>
+                </div>
+                <p class="panel-desc">Click a key, then press the new one. Esc cancels. Shoot and aim stay on the mouse.</p>
+                <div id="bind-list" class="bind-list"></div>
               </div>
             </div>
             <div id="tab-updates" class="menu-tab-content hidden">

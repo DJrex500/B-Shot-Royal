@@ -86,6 +86,8 @@ export class Game {
     this.hud = new HUD();
     this.hud.setPOIs(this.world.getPOIs());
     this.settings = this.hud.getSettings();
+    this.input.setBinds(this.settings.binds);
+    this.hud.onBindsChange((binds) => this.input.setBinds(binds));
 
     this.enemies = [];
     this.enemiesKilled = 0;
@@ -126,6 +128,8 @@ export class Game {
     this.botsEnabled = settings.botsEnabled;
     this.storm.shrinkSpeedMult = settings.stormSpeed ?? 1;
     this.player.mouseSensitivity = settings.mouseSensitivity ?? 1;
+    this.player.setBaseFov(settings.fov ?? PLAYER.baseFov);
+    this.input.setBinds(settings.binds);
     this.audio.setVolume(settings.volume ?? 0.7);
     this.won = false;
     this.matchTime = 0;
@@ -268,22 +272,22 @@ export class Game {
     this.player.applyMovement(this.input, dt, moveMult);
     this.updatePlayerGround();
 
-    if (this.input.wasPressed('KeyB')) {
+    if (this.input.wasAction('build')) {
       this.building.toggle();
       this.player.setViewMode(this.building.enabled ? 'build' : 'combat');
     }
 
-    if (this.input.wasPressed('KeyQ')) {
+    if (this.input.wasAction('cycleMat')) {
       this.player.cycleBuildMat();
     }
 
-    if (this.input.wasAnyPressed('KeyE')) {
+    if (this.input.wasAction('interact')) {
       if (this.loot.tryOpenChest(this.player, this.weapons, (msg, type) => this.onPickup(msg, type))) {
         this.audio.chest();
       }
     }
 
-    if (this.input.wasAnyPressed('KeyF') && !inBuild) {
+    if (this.input.wasAction('harvest') && !inBuild) {
       if (this.harvest.tryHarvest(this.player, this.harvestables, (msg, type) => {
         this.onPickup(msg, type);
         this.audio.harvest();
@@ -291,13 +295,13 @@ export class Game {
     }
 
     if (inBuild) {
-      if (this.input.wasAnyPressed('Digit1', 'Numpad1')) this.building.setPieceType('wall');
-      if (this.input.wasAnyPressed('Digit2', 'Numpad2')) this.building.setPieceType('floor');
-      if (this.input.wasAnyPressed('Digit3', 'Numpad3')) this.building.setPieceType('ramp');
+      if (this.input.wasAction('slot1')) this.building.setPieceType('wall');
+      if (this.input.wasAction('slot2')) this.building.setPieceType('floor');
+      if (this.input.wasAction('slot3')) this.building.setPieceType('ramp');
     } else {
-      if (this.input.wasAnyPressed('Digit1', 'Numpad1')) this.weapons.switchTo(0);
-      if (this.input.wasAnyPressed('Digit2', 'Numpad2')) this.weapons.switchTo(1);
-      if (this.input.wasAnyPressed('Digit3', 'Numpad3')) this.weapons.switchTo(2);
+      if (this.input.wasAction('slot1')) this.weapons.switchTo(0);
+      if (this.input.wasAction('slot2')) this.weapons.switchTo(1);
+      if (this.input.wasAction('slot3')) this.weapons.switchTo(2);
     }
 
     const wheel = this.input.consumeWheel();

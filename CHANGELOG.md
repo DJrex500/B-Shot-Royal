@@ -3,6 +3,15 @@
 Add a new version block at the **top** whenever we drop a change.
 Also copy the same entry into `src/game/changelog.js` so it shows on the in-game **Updates** tab.
 
+## 0.3.4 — 2026-09-08 — Remappable Controls
+
+- Settings now lets you rebind movement and actions (for example W to Up Arrow)
+- Play tab and in-world prompts show your current keys
+
+## 0.3.3 — 2026-09-08 — FOV Slider
+
+- Settings now has a Field of View slider (60–110)
+
 ## 0.3.2 — 2026-08-31 — Jump Fix
 
 - Jump only triggers once per Space press (no more fly-hops from key repeat)

@@ -55,6 +55,8 @@ export class Player {
     this.weaponAdsPos = new THREE.Vector3(0, -0.14, -0.32);
     this.baseFov = PLAYER.baseFov;
     this.currentFov = PLAYER.baseFov;
+    this.camera.fov = PLAYER.baseFov;
+    this.camera.updateProjectionMatrix();
     this.isScoped = false;
     this.mouseSensitivity = 1;
     this.bobTime = 0;
@@ -94,15 +96,15 @@ export class Player {
   }
 
   applyMovement(input, dt, moveMult = 1) {
-    const speed = (input.isDown('ShiftLeft') || input.isDown('ShiftRight')
+    const speed = (input.isAction('sprint')
       ? PLAYER.sprintSpeed
       : PLAYER.walkSpeed) * moveMult;
 
     const move = new THREE.Vector3();
-    if (input.isDown('KeyW')) move.z -= 1;
-    if (input.isDown('KeyS')) move.z += 1;
-    if (input.isDown('KeyA')) move.x -= 1;
-    if (input.isDown('KeyD')) move.x += 1;
+    if (input.isAction('forward')) move.z -= 1;
+    if (input.isAction('back')) move.z += 1;
+    if (input.isAction('left')) move.x -= 1;
+    if (input.isAction('right')) move.x += 1;
 
     if (move.lengthSq() > 0) {
       move.normalize();
@@ -119,11 +121,11 @@ export class Player {
 
     if (this.jumpLock > 0) this.jumpLock = Math.max(0, this.jumpLock - dt);
 
-    const spaceDown = input.isDown('Space');
-    const spacePressed = spaceDown && !this.spaceHeld;
-    this.spaceHeld = spaceDown;
+    const jumpDown = input.isAction('jump');
+    const jumpPressed = jumpDown && !this.spaceHeld;
+    this.spaceHeld = jumpDown;
 
-    if (spacePressed && this.onGround && this.jumpLock <= 0) {
+    if (jumpPressed && this.onGround && this.jumpLock <= 0) {
       this.body.velocity.y = PLAYER.jumpForce;
       this.onGround = false;
       this.jumpLock = PLAYER.jumpLock;
@@ -210,9 +212,20 @@ export class Player {
     this.armsGroup.visible = !inBuild && !this.isScoped;
   }
 
+  setBaseFov(fov) {
+    const next = Math.max(60, Math.min(110, Number(fov) || PLAYER.baseFov));
+    this.baseFov = next;
+    if (!this.isScoped) {
+      this.currentFov = next;
+      this.camera.fov = next;
+      this.camera.updateProjectionMatrix();
+    }
+  }
+
   updateAds(dt, weapon, scoped) {
     this.isScoped = scoped;
-    const targetFov = scoped ? weapon.adsFov : this.baseFov;
+    const adsScale = (weapon?.adsFov ?? 52) / PLAYER.baseFov;
+    const targetFov = scoped ? this.baseFov * adsScale : this.baseFov;
     this.currentFov += (targetFov - this.currentFov) * Math.min(1, dt * 14);
     this.camera.fov = this.currentFov;
     this.camera.updateProjectionMatrix();

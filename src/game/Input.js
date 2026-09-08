@@ -7,15 +7,13 @@ export class Input {
     this.locked = false;
     this.justPressed = new Set();
     this.wheelDelta = 0;
+    this.binds = {};
 
     this._onKeyDown = (e) => {
-      if (e.repeat) {
-        if (['Space', 'Tab'].includes(e.code)) e.preventDefault();
-        return;
-      }
+      if (this._shouldPrevent(e.code)) e.preventDefault();
+      if (e.repeat) return;
       this.keys.add(e.code);
       this.justPressed.add(e.code);
-      if (['Space', 'Tab'].includes(e.code)) e.preventDefault();
     };
     this._onKeyUp = (e) => this.keys.delete(e.code);
     this._onMouseMove = (e) => {
@@ -64,8 +62,30 @@ export class Input {
     document.addEventListener('pointerlockchange', this._lockBound);
   }
 
+  setBinds(binds = {}) {
+    this.binds = { ...binds };
+  }
+
+  _shouldPrevent(code) {
+    if (code === 'Tab' || code === 'Space') return true;
+    return Object.values(this.binds).includes(code);
+  }
+
+  _codesFor(action) {
+    const code = this.binds[action];
+    if (!code) return [];
+    const codes = [code];
+    if (code === 'ShiftLeft') codes.push('ShiftRight');
+    if (code === 'ControlLeft') codes.push('ControlRight');
+    return codes;
+  }
+
   isDown(code) {
     return this.keys.has(code);
+  }
+
+  isAction(action) {
+    return this._codesFor(action).some((code) => this.keys.has(code));
   }
 
   consumeMouseDelta() {
@@ -89,6 +109,10 @@ export class Input {
       if (this.wasPressed(code)) return true;
     }
     return false;
+  }
+
+  wasAction(action) {
+    return this.wasAnyPressed(...this._codesFor(action));
   }
 
   consumeWheel() {
