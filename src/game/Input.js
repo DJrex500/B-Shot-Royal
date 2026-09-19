@@ -30,6 +30,7 @@ export class Input {
     };
     this._onContextMenu = (e) => e.preventDefault();
     this._onWheel = (e) => {
+      if (!this.locked) return;
       this.wheelDelta += Math.sign(e.deltaY);
       e.preventDefault();
     };

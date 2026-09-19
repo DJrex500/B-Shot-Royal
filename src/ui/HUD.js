@@ -73,6 +73,13 @@ export class HUD {
     const hashTab = location.hash.replace('#', '');
     if (hashTab === 'updates' || hashTab === 'settings') openTab(hashTab);
 
+    const settingsTab = document.getElementById('tab-settings');
+    settingsTab?.addEventListener('wheel', (e) => {
+      if (!e.target.closest('input[type="range"]')) return;
+      e.preventDefault();
+      settingsTab.scrollTop += e.deltaY;
+    }, { passive: false });
+
     const botsEl = document.getElementById('setting-bots');
     const sensEl = document.getElementById('setting-sens');
     const sensVal = document.getElementById('setting-sens-val');

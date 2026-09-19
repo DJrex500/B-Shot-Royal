@@ -41,15 +41,21 @@ body {
     linear-gradient(160deg, rgba(10, 14, 20, 0.82), rgba(15, 23, 42, 0.88)),
     url("/banner.png") center / cover no-repeat;
   padding: 2rem;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .menu-shell {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr);
   gap: 2rem;
   max-width: 980px;
   width: 100%;
+  max-height: 100%;
+  min-height: 0;
   align-items: stretch;
+  overflow: hidden;
 }
 
 .menu-hero {
@@ -61,6 +67,7 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.15);
   border-radius: 16px;
   background: rgba(15, 23, 42, 0.72);
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -108,6 +115,7 @@ body {
   flex-direction: column;
   gap: 1rem;
   min-height: 0;
+  max-height: 100%;
   overflow: hidden;
 }
 
@@ -139,11 +147,41 @@ body {
 .menu-tab-content {
   flex: 1;
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .menu-tab-content.hidden {
   display: none;
+}
+
+#tab-play:not(.hidden),
+#tab-settings:not(.hidden) {
+  padding-right: 0.45rem;
+}
+
+#tab-play::-webkit-scrollbar,
+#tab-settings::-webkit-scrollbar {
+  width: 8px;
+}
+
+#tab-play::-webkit-scrollbar-track,
+#tab-settings::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 8px;
+}
+
+#tab-play::-webkit-scrollbar-thumb,
+#tab-settings::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 8px;
+}
+
+#tab-play,
+#tab-settings {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.45) rgba(15, 23, 42, 0.4);
 }
 
 #tab-updates:not(.hidden) {
@@ -1078,6 +1116,7 @@ kbd {
 @media (max-width: 860px) {
   .menu-shell {
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
     max-width: 520px;
   }
 }
