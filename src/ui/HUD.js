@@ -49,6 +49,7 @@ export class HUD {
     this.kills = 0;
     this.pois = [];
     this.listeningAction = null;
+    this.pendingShare = null;
     this._onBindsChange = null;
 
     this.bindMenu();
@@ -213,18 +214,62 @@ export class HUD {
   }
 
   assignBind(action, code) {
-    const binds = { ...this.settings.binds };
-    const previous = binds[action];
-    for (const [id, bound] of Object.entries(binds)) {
-      if (id !== action && bound === code) binds[id] = previous;
+    if (this.settings.binds?.[action] === code) {
+      this.listeningAction = null;
+      this.renderBindList();
+      return;
     }
-    binds[action] = code;
+
+    const conflicts = BIND_ACTIONS.filter(
+      ({ id }) => id !== action && this.settings.binds?.[id] === code
+    );
+    if (conflicts.length) {
+      this.listeningAction = null;
+      this.renderBindList();
+      this.showBindSharePrompt(action, code, conflicts);
+      return;
+    }
+
+    this.applyBind(action, code);
+  }
+
+  applyBind(action, code) {
+    const binds = { ...this.settings.binds, [action]: code };
     this.settings.binds = binds;
     this.listeningAction = null;
+    this.pendingShare = null;
+    this.hideBindSharePrompt();
     saveSettings(this.settings);
     this.renderBindList();
     this.renderControlsSummary();
     this._onBindsChange?.(binds);
+  }
+
+  joinLabels(labels) {
+    if (labels.length <= 1) return labels[0] || '';
+    if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+    return `${labels.slice(0, -1).join(', ')}, and ${labels[labels.length - 1]}`;
+  }
+
+  showBindSharePrompt(action, code, conflicts) {
+    const dialog = document.getElementById('bind-share-dialog');
+    const msg = document.getElementById('bind-share-msg');
+    if (!dialog || !msg) {
+      this.applyBind(action, code);
+      return;
+    }
+
+    const actionLabel = BIND_ACTIONS.find((item) => item.id === action)?.label || action;
+    const others = this.joinLabels(conflicts.map((item) => item.label));
+    const keyName = formatKeyCode(code);
+    msg.textContent = `${keyName} is already doing ${others}. Totally fine if you want both on the same key — use it for ${actionLabel} too?`;
+    this.pendingShare = { action, code };
+    dialog.classList.remove('hidden');
+  }
+
+  hideBindSharePrompt() {
+    this.pendingShare = null;
+    document.getElementById('bind-share-dialog')?.classList.add('hidden');
   }
 
   bindControlMapper() {
@@ -233,13 +278,29 @@ export class HUD {
     document.getElementById('reset-binds')?.addEventListener('click', () => {
       this.settings.binds = { ...DEFAULT_BINDS };
       this.listeningAction = null;
+      this.hideBindSharePrompt();
       saveSettings(this.settings);
       this.renderBindList();
       this.renderControlsSummary();
       this._onBindsChange?.(this.settings.binds);
     });
 
+    document.getElementById('bind-share-cancel')?.addEventListener('click', () => {
+      this.hideBindSharePrompt();
+    });
+    document.getElementById('bind-share-confirm')?.addEventListener('click', () => {
+      if (!this.pendingShare) return;
+      this.applyBind(this.pendingShare.action, this.pendingShare.code);
+    });
+
     window.addEventListener('keydown', (e) => {
+      if (this.pendingShare) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.repeat) return;
+        if (e.code === 'Escape') this.hideBindSharePrompt();
+        return;
+      }
       if (!this.listeningAction) return;
       e.preventDefault();
       e.stopPropagation();

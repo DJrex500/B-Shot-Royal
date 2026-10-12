@@ -113,7 +113,7 @@ export class Input {
   }
 
   wasAction(action) {
-    return this.wasAnyPressed(...this._codesFor(action));
+    return this._codesFor(action).some((code) => this.justPressed.has(code));
   }
 
   consumeWheel() {

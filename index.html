@@ -89,13 +89,23 @@
                   <h3>Controls</h3>
                   <button type="button" id="reset-binds">Reset keys</button>
                 </div>
-                <p class="panel-desc">Click a key, then press the new one. Esc cancels. Shoot and aim stay on the mouse.</p>
+                <p class="panel-desc">Click a key, then press the new one. Esc cancels. Actions can share a key. Shoot and aim stay on the mouse.</p>
                 <div id="bind-list" class="bind-list"></div>
               </div>
             </div>
             <div id="tab-updates" class="menu-tab-content hidden">
               <p class="panel-desc">Patch notes. Newest drops first.</p>
               <div id="update-log" class="update-log"></div>
+            </div>
+          </div>
+        </div>
+        <div id="bind-share-dialog" class="bind-share-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="bind-share-title">
+          <div class="bind-share-card">
+            <p id="bind-share-title">Quick check</p>
+            <p id="bind-share-msg"></p>
+            <div class="bind-share-actions">
+              <button type="button" id="bind-share-cancel">Keep it as is</button>
+              <button type="button" id="bind-share-confirm">Yep, share it</button>
             </div>
           </div>
         </div>

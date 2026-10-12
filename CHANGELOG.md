@@ -3,6 +3,11 @@
 Add a new version block at the **top** whenever we drop a change.
 Also copy the same entry into `src/game/changelog.js` so it shows on the in-game **Updates** tab.
 
+## 0.3.5 — 2026-09-19 — Shared Keybinds
+
+- Different actions can now share the same key
+- A friendly reminder pops up before you reuse a key that is already bound
+
 ## 0.3.4 — 2026-09-08 — Remappable Controls
 
 - Settings now lets you rebind movement and actions (for example W to Up Arrow)

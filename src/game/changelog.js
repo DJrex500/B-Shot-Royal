@@ -4,6 +4,15 @@
  */
 export const CHANGELOG = [
   {
+    version: '0.3.5',
+    date: '2026-09-19',
+    title: 'Shared Keybinds',
+    items: [
+      'Different actions can now share the same key',
+      'A friendly reminder pops up before you reuse a key that is already bound',
+    ],
+  },
+  {
     version: '0.3.4',
     date: '2026-09-08',
     title: 'Remappable Controls',
